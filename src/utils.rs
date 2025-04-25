@@ -7,9 +7,12 @@ use std::{
 use tokio::io::AsyncReadExt;
 use tokio_vsock::{VsockAddr, VsockStream};
 
+/// The piece of data that was being read/written when an error occurred.
 #[derive(Debug)]
 pub enum CodingKey {
+    /// The length of the data.
     Length,
+    /// The data itself.
     Payload,
 }
 

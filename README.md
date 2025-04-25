@@ -11,6 +11,12 @@ First, add `pontifex` to your enclave's `Cargo.toml` with the `server` feature. 
 ```rust
 const ENCLAVE_PORT: u32 = 1000;
 
+#[derive(serde::Deserialize)]
+struct RequestPayload {}
+
+#[derive(serde::Serialize)]
+struct ResponsePayload {}
+
 #[tokio::main]
 async fn main() {
     // setup tracing, etc.
@@ -27,12 +33,6 @@ async fn process(request: RequestPayload) -> ResponsePayload {
 
     ResponsePayload {}
 }
-
-#[derive(serde::Deserialize)]
-struct RequestPayload {}
-
-#[derive(serde::Serialize)]
-struct ResponsePayload {}
 ```
 
 Then, on your client, add `pontifex` to your `Cargo.toml` with the `client` feature. You can then interact with your enclave as follows:

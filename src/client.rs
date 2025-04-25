@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::io;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use crate::{CodingKey, utils::Stream};
+pub use crate::utils::CodingKey;
+use crate::utils::Stream;
 
 /// Details about a connection.
 #[derive(Debug, Clone, Copy)]
@@ -21,16 +22,22 @@ impl ConnectionDetails {
     }
 }
 
+/// Errors that can occur when sending a request.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// Failed to connect to the enclave.
     #[error("connection failed: {0}")]
     Connection(io::Error),
+    /// Failed to encode the request payload.
     #[error("encoding failed: {0}")]
     Encoding(rmp_serde::encode::Error),
+    /// Failed to decode the response payload.
     #[error("decoding failed: {0}")]
     Decoding(rmp_serde::decode::Error),
+    /// Failed to send the request.
     #[error("failed to write {0}: {1}")]
     Writing(CodingKey, io::Error),
+    /// Failed to receive the response.
     #[error("failed to read {0}: {1}")]
     Reading(CodingKey, io::Error),
 }

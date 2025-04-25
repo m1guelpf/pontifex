@@ -3,20 +3,27 @@ use std::{io, sync::Arc};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_vsock::{VsockAddr, VsockListener};
 
-use crate::{CodingKey, utils::Stream};
+pub use crate::utils::CodingKey;
+use crate::utils::Stream;
 
 const VMADDR_CID_ANY: u32 = 0xFFFF_FFFF;
 
+/// Errors that can occur when running the server.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// Failed to bind to vsock address.
     #[error("Failed to bind to vsock address: {0}")]
     Bind(io::Error),
+    /// Failed to encode the request payload.
     #[error("encoding failed: {0}")]
     Encoding(rmp_serde::encode::Error),
+    /// Failed to decode the request payload.
     #[error("decoding failed: {0}")]
     Decoding(rmp_serde::decode::Error),
+    /// Failed to write a payload to the stream.
     #[error("failed to write {0}: {1}")]
     Writing(CodingKey, io::Error),
+    /// Failed to read a payload from the stream.
     #[error("failed to read {0}: {1}")]
     Reading(CodingKey, io::Error),
 }
