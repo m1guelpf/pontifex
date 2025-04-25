@@ -2,7 +2,7 @@
 license = "MIT"
 edition = "2024"
 name = "pontifex"
-version = "0.1.0"
+version = "0.1.1"
 readme = "README.md"
 homepage = "https://github.com/m1guelpf/pontifex"
 repository = "https://github.com/m1guelpf/pontifex"
@@ -22,3 +22,6 @@ tokio = { version = "1.44.2", features = ["io-util"] }
 [features]
 server = []
 client = []
+
+[package.metadata.docs.rs]
+all-features = true
