@@ -1,0 +1,54 @@
+# Pontifex
+
+> Pontifex (noun): Originally meaning "bridge-builder" in Latin
+
+Pontifex is a Rust library for building and interacting with AWS Nitro enclaves. It provides a simple abstraction for building enclaves and interacting with them using the AWS Nitro Enclaves SDK.
+
+## Usage
+
+First, add `pontifex` to your enclave's `Cargo.toml` with the `server` feature. Then, you can build your enclave as follows:
+
+```rust
+const ENCLAVE_PORT: u32 = 1000;
+
+#[tokio::main]
+async fn main() {
+    // setup tracing, etc.
+
+    tracing::info!("🦀 Starting server...");
+
+    if let Err(e) = pontifex::listen(ENCLAVE_PORT, process).await {
+        eprintln!("Failed to start server: {e}");
+    }
+}
+
+async fn process(request: RequestPayload) -> ResponsePayload {
+    // handle request
+
+    ResponsePayload {}
+}
+
+#[derive(serde::Deserialize)]
+struct RequestPayload {}
+
+#[derive(serde::Serialize)]
+struct ResponsePayload {}
+```
+
+Then, on your client, add `pontifex` to your `Cargo.toml` with the `client` feature. You can then interact with your enclave as follows:
+
+```rust
+#[derive(serde::Serialize)]
+struct RequestPayload {}
+
+#[derive(serde::Deserialize)]
+struct ResponsePayload {}
+
+let response: ResponsePayload = pontifex::send(ConnectionDetails::new(ENCLAVE_CID, ENCLAVE_PORT), &request).await?;
+```
+
+For convenience, you can define a common crate that both your enclave and client depend on, which contains your request and response types.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

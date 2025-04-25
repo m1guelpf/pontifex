@@ -1,0 +1,21 @@
+[package]
+license = "MIT"
+edition = "2024"
+name = "pontifex"
+version = "0.1.0"
+readme = "README.md"
+repository = "https://github.com/m1guelpf/pontifex"
+authors = ["Miguel Piedrafita <rust@miguel.build>"]
+description = "An abstraction for building and interacting with AWS Nitro enclaves."
+
+[dependencies]
+tokio = "1.44.2"
+serde = "1.0.219"
+tracing = "0.1.41"
+rmp-serde = "1.3.0"
+thiserror = "2.0.12"
+tokio-vsock = "0.7.1"
+
+[features]
+server = []
+client = []
