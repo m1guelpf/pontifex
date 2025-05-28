@@ -14,6 +14,10 @@ pub enum Error {
     /// Failed to bind to vsock address.
     #[error("Failed to bind to vsock address: {0}")]
     Bind(io::Error),
+    /// Failed to connect to NSM.
+    #[cfg(feature = "nsm")]
+    #[error("Failed to connect to NSM: {0}")]
+    NsmConnect(io::Error),
     /// Failed to encode the request payload.
     #[error("encoding failed: {0}")]
     Encoding(rmp_serde::encode::Error),
@@ -50,6 +54,21 @@ where
 
     tracing::info!("started listening on port {port}");
 
+    // Initialize the secure module global if the feature is enabled.
+    #[cfg(feature = "nsm")]
+    {
+        match crate::SecureModule::connect() {
+            Ok(nsm) => {
+                crate::nsm::SECURE_MODULE_GLOBAL
+                    .get_or_init(|| async { nsm })
+                    .await
+            }
+            Err(e) => {
+                return Err(Error::NsmConnect(e));
+            }
+        };
+    }
+
     let process = Arc::new(process);
     loop {
         let stream = match listener.accept().await {
@@ -85,9 +104,8 @@ where
         .read_u64()
         .await
         .map_err(|e| Error::Reading(CodingKey::Length, e))?;
-    let mut payload = Vec::new();
-    stream
-        .read_to_end(&mut payload, len)
+    let payload = stream
+        .read_exact(len)
         .await
         .map_err(|e| Error::Reading(CodingKey::Payload, e))?;
 

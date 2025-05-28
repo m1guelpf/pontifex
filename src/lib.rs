@@ -1,4 +1,4 @@
-#![warn(clippy::all, clippy::pedantic, clippy::nursery)]
+#![deny(clippy::all, clippy::pedantic, clippy::nursery)]
 #![doc = include_str!("../README.md")]
 
 /// Client-side functionality.
@@ -12,5 +12,12 @@ pub use client::{ConnectionDetails, send};
 pub mod server;
 #[cfg(feature = "server")]
 pub use server::listen;
+
+#[cfg(any(feature = "nsm", feature = "nsm-types"))]
+pub mod nsm;
+#[cfg(feature = "nsm")]
+pub use nsm::SecureModule;
+#[cfg(feature = "nsm-types")]
+pub use nsm::{AttestationDoc, AttestationError};
 
 mod utils;

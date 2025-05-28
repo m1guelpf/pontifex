@@ -1,14 +1,21 @@
 use std::{
     fmt::Display,
-    io,
     net::Shutdown,
     ops::{Deref, DerefMut},
 };
-use tokio::io::AsyncReadExt;
-use tokio_vsock::{VsockAddr, VsockStream};
+use tokio_vsock::VsockStream;
+#[cfg(any(feature = "client", feature = "server"))]
+use {std::io, tokio::io::AsyncReadExt};
+
+#[cfg(feature = "client")]
+use tokio_vsock::VsockAddr;
 
 /// The piece of data that was being read/written when an error occurred.
 #[derive(Debug)]
+#[allow(
+    dead_code,
+    reason = "CodingKey gets re-exported in client.rs and server.rs, but clippy doesn't know that"
+)]
 pub enum CodingKey {
     /// The length of the data.
     Length,
@@ -26,30 +33,28 @@ impl Display for CodingKey {
 }
 
 pub struct Stream {
-    stream: Option<VsockStream>,
+    stream: VsockStream,
 }
 
 impl Stream {
+    #[cfg(feature = "server")]
     pub const fn new(stream: VsockStream) -> Self {
-        Self {
-            stream: Some(stream),
-        }
+        Self { stream }
     }
 
+    #[cfg(feature = "client")]
     pub async fn connect(cid: u32, port: u32) -> io::Result<Self> {
         let stream = VsockStream::connect(VsockAddr::new(cid, port)).await?;
 
-        Ok(Self {
-            stream: Some(stream),
-        })
+        Ok(Self { stream })
     }
 
-    pub async fn read_to_end(&mut self, buf: &mut Vec<u8>, len: u64) -> io::Result<usize> {
-        let stream = self.stream.take().expect("stream should always be filled");
-        let mut take = stream.take(len);
-        let read_len = take.read_to_end(buf).await?;
-        self.stream = Some(take.into_inner());
-        Ok(read_len)
+    #[cfg(any(feature = "client", feature = "server"))]
+    pub async fn read_exact(&mut self, size: u64) -> io::Result<Vec<u8>> {
+        let mut buf = vec![0; usize::try_from(size).map_err(|_| io::ErrorKind::InvalidInput)?];
+        self.stream.read_exact(&mut buf).await?;
+
+        Ok(buf)
     }
 }
 
@@ -57,26 +62,18 @@ impl Deref for Stream {
     type Target = VsockStream;
 
     fn deref(&self) -> &Self::Target {
-        self.stream
-            .as_ref()
-            .expect("stream should always be filled")
+        &self.stream
     }
 }
 
 impl DerefMut for Stream {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        self.stream
-            .as_mut()
-            .expect("stream should always be filled")
+        &mut self.stream
     }
 }
 
 impl Drop for Stream {
     fn drop(&mut self) {
-        _ = self
-            .stream
-            .as_ref()
-            .expect("stream should always be filled")
-            .shutdown(Shutdown::Both);
+        _ = self.stream.shutdown(Shutdown::Both);
     }
 }

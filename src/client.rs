@@ -80,7 +80,6 @@ where
 
     tracing::debug!(payload =? request, "sent encoded request payload");
 
-    let mut response = Vec::new();
     let len = stream
         .read_u64()
         .await
@@ -88,8 +87,8 @@ where
 
     tracing::debug!(length = len, "received response length");
 
-    stream
-        .read_to_end(&mut response, len)
+    let response = stream
+        .read_exact(len)
         .await
         .map_err(|e| Error::Reading(CodingKey::Payload, e))?;
 

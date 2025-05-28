@@ -38,13 +38,29 @@ async fn process(request: RequestPayload) -> ResponsePayload {
 Then, on your client, add `pontifex` to your `Cargo.toml` with the `client` feature. You can then interact with your enclave as follows:
 
 ```rust
+use pontifex::ConnectionDetails;
+
+const ENCLAVE_CID: u32 = 100;
+const ENCLAVE_PORT: u32 = 1024;
+
 #[derive(serde::Serialize)]
 struct RequestPayload {}
 
 #[derive(serde::Deserialize)]
 struct ResponsePayload {}
 
-let response: ResponsePayload = pontifex::send(ConnectionDetails::new(ENCLAVE_CID, ENCLAVE_PORT), &request).await?;
+#[tokio::main]
+async fn main() {
+
+    let request = RequestPayload {};
+
+    let result = pontifex::send::<RequestPayload, ResponsePayload>(ConnectionDetails::new(ENCLAVE_CID, ENCLAVE_PORT), &request).await;
+
+    if let Ok(response) = result {
+        println!("Response received");
+    }
+}
+
 ```
 
 For convenience, you can define a common crate that both your enclave and client depend on, which contains your request and response types.
